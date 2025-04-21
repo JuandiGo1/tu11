@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
-import salasRoutes from './routes/salas.routes.js';
+import salasRoutes from './routes/sala.routes.js';
 import socketHandler from './socket.js';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';

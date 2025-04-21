@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const JugadorSchema = new mongoose.Schema({
+const JugadorSchema = new mongoose.Schema({
   nickname: { type: String, required: true },
   avatar: { type: String },
   equipo: [
@@ -16,3 +16,4 @@ export const JugadorSchema = new mongoose.Schema({
 });
 
 
+export default JugadorSchema;
