@@ -4,6 +4,10 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import salasRoutes from './routes/salas.routes.js';
 import socketHandler from './socket.js';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js';
+
+dotenv.config(); // Cargar variables de entorno desde .env
 
 const app = express();
 const server = http.createServer(app); 
@@ -22,8 +26,10 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
-  
+
 app.use(express.json());
+
+connectDB();
 
 // Rutas
 app.use('/api/salas', salasRoutes);
