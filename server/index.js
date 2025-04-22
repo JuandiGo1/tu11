@@ -3,6 +3,7 @@ import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
 import salasRoutes from './routes/sala.routes.js';
+import playerRoutes from './routes/jugadores.routes.js';
 import socketHandler from './socket.js';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
@@ -33,6 +34,7 @@ connectDB();
 
 // Rutas
 app.use('/api/salas', salasRoutes);
+app.use('/api/players', playerRoutes);
 
 // Socket.io
 socketHandler(io);

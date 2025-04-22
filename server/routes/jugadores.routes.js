@@ -1,8 +1,9 @@
 import {Router} from 'express';
-import { buscarJugadores } from '../controllers/jugadores.controller.js';
+import { buscarJugadores, obtenerInfoJugador } from '../controllers/jugadores.controller.js';
 
-const routerJug = Router();
+const playerRoutes = Router();
 
-routerJug.get('/buscar', buscarJugadores);
+playerRoutes.get('/buscar', buscarJugadores);
+playerRoutes.get('/info/:idJugador', obtenerInfoJugador);
 
-export default routerJug;
+export default playerRoutes;

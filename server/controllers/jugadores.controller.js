@@ -6,7 +6,7 @@ export const buscarJugadores = async (req, res) => {
 
   try {
     const response = await axios.get(`https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p=${encodeURIComponent(nombre)}`);
-    const jugadores = response.data.players || [];
+    const jugadores = response.data.player || [];
 
     //mostrar solo jugadores de fútbol
     const jugadoresFiltrados = jugadores.filter(j => j.strSport === 'Soccer');
@@ -20,7 +20,10 @@ export const buscarJugadores = async (req, res) => {
 };
 
 // Buscar valor de mercado en Transfermarkt
-const obtenerInfoJugador = async (idJugador) => {
+export const obtenerInfoJugador = async (req, res) => {
+  const { idJugador } = req.params; 
+
+  if (!idJugador) return res.status(400).json({ error: 'Falta el ID del jugador' });
   try {
     // Primera petición: obtener el idTransferMkt desde TheSportsDB
     const response = await axios.get(`https://www.thesportsdb.com/api/v1/json/3/lookupplayer.php?id=${idJugador}`);
