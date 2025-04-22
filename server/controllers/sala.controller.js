@@ -1,5 +1,6 @@
 import Sala from '../models/Sala.js';
 import { nanoid } from 'nanoid'; 
+import { agregarJugadorASala } from '../utils/salasUtils.js';
 
 // Crear una sala
 export const crearSala = async (req, res) => {
@@ -31,14 +32,9 @@ export const crearSala = async (req, res) => {
 export const unirseASala = async (req, res) => {
   try {
     const { codigo, nickname, avatar } = req.body;
-    const { sala, salaLlena, error, status } = await obtenerSala(codigo);
+    const { sala, error, status } = await agregarJugadorASala(codigo, { nickname, avatar });
 
     if (error) return res.status(status).json({ error });
-    if (salaLlena) return res.status(400).json({ error: 'La sala ya está llena' });
-    
-    sala.jugadores.push({ nickname, avatar, equipo: [], presupuestoRestante: sala.reglas.presupuesto });
-    sala.estado = 'en_juego'; // Cambiamos el estado a 'en_juego' al unirse un nuevo jugador
-    await sala.save();
 
     res.status(200).json(sala);
   } catch (err) {

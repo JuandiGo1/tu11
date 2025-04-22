@@ -1,44 +1,77 @@
+import Sala from './models/Sala.js';
+import { agregarJugadorASala } from './utils/salasUtils.js';
 
-const salasActivas = new Map(); // Guarda salas y sus jugadores conectados
+const salasActivas = new Map(); // En memoria para conexiones
 
 export default function socketHandler(io) {
   io.on('connection', (socket) => {
     console.log('🔌 Nuevo cliente conectado:', socket.id);
 
-    // El cliente quiere unirse a una sala
-    socket.on('unirseSala', ({ codigoSala, nickname, avatar }) => {
+    // Unirse a una sala
+    socket.on('unirseSala', async ({ codigoSala, nickname, avatar }) => {
       console.log(`🎮 ${nickname} quiere unirse a la sala ${codigoSala}`);
 
-      socket.join(codigoSala); // Se une a una sala en socket.io
+      try {
+        const { sala, error, status } = await agregarJugadorASala(codigoSala, { nickname, avatar });
 
-      // Guardamos al jugador en nuestra estructura de datos
-      if (!salasActivas.has(codigoSala)) {
-        salasActivas.set(codigoSala, []);
+        if (!sala) {
+          socket.emit('errorSala', error || 'La sala no existe');
+          return;
+        }
+
+        if (sala.jugadores.length >= 2) {
+          socket.emit('errorSala', 'La sala ya está llena');
+          return;
+        }
+
+        // Join room socket.io
+        socket.join(codigoSala);
+
+        // Agregar jugador a memoria
+        if (!salasActivas.has(codigoSala)) {
+          salasActivas.set(codigoSala, []);
+        }
+        const jugadoresConectados = salasActivas.get(codigoSala);
+        jugadoresConectados.push({ id: socket.id, nickname, avatar });
+        salasActivas.set(codigoSala, jugadoresConectados);
+
+        // Emitir actualización de jugadores
+        io.to(codigoSala).emit('jugadorUnido', {
+          nickname,
+          avatar,
+          jugadores: jugadoresConectados
+        });
+
+        // Si ya hay 2, avisar que el juego puede comenzar
+        if (sala.jugadores.length === 2) {
+          io.to(codigoSala).emit('juegoListo');
+        }
+
+      } catch (err) {
+        console.error('❌ Error en unirseSala:', err);
+        socket.emit('errorSala', 'Error interno del servidor');
       }
-
-      const jugadores = salasActivas.get(codigoSala);
-      jugadores.push({ id: socket.id, nickname, avatar });
-      salasActivas.set(codigoSala, jugadores);
-
-      // Notificamos a todos en la sala que llegó un nuevo jugador
-      io.to(codigoSala).emit('jugadorUnido', { nickname, avatar, jugadores });
     });
 
-    // Cuando se selecciona un jugador para el equipo
-    socket.on('jugadorSeleccionado', ({ codigoSala, jugador }) => {
-      // Transmitimos a todos en la sala que se ha seleccionado un jugador
-      io.to(codigoSala).emit('jugadorSeleccionado', jugador);
+    // Cuando se selecciona un jugador
+    socket.on('jugadorSeleccionado', async ({ codigoSala, jugador, turno }) => {
+      try {
+        // Aquí puedes hacer la lógica de turnos, actualizar Mongo, etc.
+        io.to(codigoSala).emit('jugadorSeleccionado', { jugador, turno });
+      } catch (err) {
+        console.error('❌ Error seleccionando jugador:', err);
+      }
     });
 
-    // Cuando alguien se desconecta
+    // Desconexión
     socket.on('disconnect', () => {
       console.log('⛔ Cliente desconectado:', socket.id);
 
-      // Quitarlo de todas las salas
       for (const [codigoSala, jugadores] of salasActivas.entries()) {
         const actualizados = jugadores.filter(j => j.id !== socket.id);
+
         if (actualizados.length === 0) {
-          salasActivas.delete(codigoSala); // borra la sala si queda vacía
+          salasActivas.delete(codigoSala); // Eliminar sala si no hay jugadores
         } else {
           salasActivas.set(codigoSala, actualizados);
           io.to(codigoSala).emit('jugadorDesconectado', { id: socket.id });
