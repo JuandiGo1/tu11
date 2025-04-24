@@ -6,6 +6,6 @@ const router = Router();
 router.post('/crear', crearSala);
 router.post('/unirse', unirseASala);
 router.get('/:codigo', obtenerSala);
-router.get('/salir', salirDeSala);
+router.post('/salir', salirDeSala);
 
 export default router;
