@@ -45,13 +45,13 @@ export default function SalaPage() {
     }
   }, [id, router])
 
-  if (error) {
-    return (
-      <main className="p-6 text-center">
-        <h1 className="text-2xl text-red-600">Error: {error}</h1>
-      </main>
-    )
-  }
+  // if (error) {
+  //   return (
+  //     <main className="p-6 text-center">
+  //       <h1 className="text-2xl text-red-600">Error: {error}</h1>
+  //     </main>
+  //   )
+  // }
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-[#3c096c] px-4">

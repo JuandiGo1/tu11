@@ -32,8 +32,13 @@ export const crearSala = async (req, res) => {
 export const unirseASala = async (req, res) => {
   try {
     const { codigo, nickname, avatar } = req.body;
-    const { sala, error, status } = await agregarJugadorASala(codigo, { nickname, avatar });
+    
 
+    const jugadorYaEnSala = sala.jugadores.some(jugador => jugador.nickname === nickname);
+    if (jugadorYaEnSala) return res.status(400).json({ error: 'Ya estás en la sala' });
+
+    const { sala, error, status } = await agregarJugadorASala(codigo, { nickname, avatar });
+    
     if (error) return res.status(status).json({ error });
 
     res.status(200).json(sala);

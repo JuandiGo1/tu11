@@ -8,15 +8,22 @@ export default function socketHandler(io) {
     console.log('🔌 Nuevo cliente conectado:', socket.id);
 
     // Unirse a una sala
-    socket.on('unirseSala', async ({ codigoSala, jugador}) => {
-     
+    socket.on('unirseSala', async ({ codigoSala, jugador }) => {
+
       console.log(`🎮 ${jugador.nickname} quiere unirse a la sala ${codigoSala}`);
 
       try {
-        const { sala, error, status } = await agregarJugadorASala(codigoSala, jugador);
+        const sala = await Sala.findOne({ codigo: codigoSala });
+        
 
         if (!sala) {
           socket.emit('errorSala', error || 'La sala no existe');
+          return;
+        }
+
+        const jugadorYaEnSala = sala.jugadores.some(j => j.nickname === jugador.nickname);
+        if (jugadorYaEnSala) {
+          socket.emit('errorSala', 'Ya estás en la sala');
           return;
         }
 
@@ -25,8 +32,14 @@ export default function socketHandler(io) {
           return;
         }
 
+        const { sala: salaActualizada, error, status } = await agregarJugadorASala(codigoSala, jugador);
+
+
         // Join room socket.io
         socket.join(codigoSala);
+        if(salaActualizada.jugadores.length === 2) {
+          io.to(codigoSala).emit('juegoListo');
+        }
 
         // Agregar jugador a memoria
         if (!salasActivas.has(codigoSala)) {
@@ -38,8 +51,8 @@ export default function socketHandler(io) {
 
         // Emitir actualización de jugadores
         io.to(codigoSala).emit('jugadorUnido', {
-          nickname,
-          avatar,
+          nickname: jugador.nickname,
+          avatar: jugador.avatar,
           jugadores: jugadoresConectados
         });
 
