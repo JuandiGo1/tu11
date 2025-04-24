@@ -57,3 +57,33 @@ export const obtenerSala = async (req, res) => {
     return { error: 'Error al obtener la sala', status: 500 };
   }
 };
+
+export const salirDeSala = async (req, res) => {
+  try {
+    const { codigo, nickname } = req.body;
+
+    // Buscar la sala por código
+    const sala = await Sala.findOne({ codigo });
+
+    if (!sala) {
+      return res.status(404).json({ error: 'Sala no encontrada' });
+    }
+
+    // Filtrar al jugador que desea salir
+    sala.jugadores = sala.jugadores.filter(jugador => jugador.nickname !== nickname);
+
+    // Si no quedan jugadores, eliminar la sala
+    if (sala.jugadores.length === 0) {
+      await Sala.deleteOne({ codigo });
+      return res.status(200).json({ message: 'Sala eliminada porque no quedan jugadores' });
+    }
+
+    // Guardar los cambios en la sala
+    await sala.save();
+
+    res.status(200).json({ message: 'Jugador salió de la sala', sala });
+  } catch (err) {
+    console.error('Error al salir de la sala:', err);
+    res.status(500).json({ error: 'Error al salir de la sala' });
+  }
+};
