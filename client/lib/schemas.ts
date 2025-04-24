@@ -10,8 +10,10 @@ export interface Regla {
 export interface Sala {
     codigo: string;
     reglas : Regla[];
-    jugadores: (link: string) => void;
-    turnoActual: (index: number) => void;
+    jugadores: Jugador[];
+    turnoActual: number;
+    estado: string;
+    creada: Date;
     
 }
 
