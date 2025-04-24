@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { crearSala } from '@/lib/api'
+import { crearSala, verificarSala } from '@/lib/api'
 import { Regla, Jugador } from '@/lib/schemas'
 
 export default function SalaHome() {
@@ -33,9 +33,20 @@ export default function SalaHome() {
     router.push(`/sala/${salaCreada}`)
   }
 
-  const unirseSala = () => {
+  const unirseSala = async () => {
     if (!codigoSala.trim()) return alert('Ingresa el código de la sala')
-    router.push(`/sala/${codigoSala}`)
+
+      try {
+          const sala = await verificarSala(codigoSala)
+          if (sala.estaLlena) {
+              return alert('La sala está llena, no puedes unirte.')
+          }
+  
+          router.push(`/sala/${codigoSala}`)
+      } catch (error) {
+          console.error('Error al unirse a la sala:', error)
+          alert('Hubo un problema al intentar unirse a la sala. Inténtalo de nuevo.')
+      }
   }
 
   if (!jugador) return null

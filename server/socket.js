@@ -78,18 +78,47 @@ export default function socketHandler(io) {
     });
 
     // Desconexión
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       console.log('⛔ Cliente desconectado:', socket.id);
 
-      for (const [codigoSala, jugadores] of salasActivas.entries()) {
-        const actualizados = jugadores.filter(j => j.id !== socket.id);
+      try {
+        for (const [codigoSala, jugadores] of salasActivas.entries()) {
+          // Buscar al jugador desconectado en la sala
+          const jugadorDesconectado = jugadores.find(j => j.id === socket.id);
 
-        if (actualizados.length === 0) {
-          salasActivas.delete(codigoSala); // Eliminar sala si no hay jugadores
-        } else {
-          salasActivas.set(codigoSala, actualizados);
-          io.to(codigoSala).emit('jugadorDesconectado', { id: socket.id });
+          if (jugadorDesconectado) {
+            // Eliminar al jugador de la lista en memoria
+            const jugadoresActualizados = jugadores.filter(j => j.id !== socket.id);
+            salasActivas.set(codigoSala, jugadoresActualizados);
+
+            // Buscar la sala en la base de datos
+            const sala = await Sala.findOne({ codigo: codigoSala });
+
+            if (sala) {
+              // Eliminar al jugador de la sala en la base de datos
+              sala.jugadores = sala.jugadores.filter(j => j.nickname !== jugadorDesconectado.nickname);
+
+              // Si no quedan jugadores, eliminar la sala
+              if (sala.jugadores.length === 0) {
+                await Sala.deleteOne({ codigo: codigoSala });
+                salasActivas.delete(codigoSala); // Eliminar la sala de memoria
+                console.log(`🗑️ Sala ${codigoSala} eliminada porque no quedan jugadores`);
+              } else {
+                // Guardar los cambios en la sala
+                await sala.save();
+                console.log(`👤 Jugador ${jugadorDesconectado.nickname} salió de la sala ${codigoSala}`);
+              }
+
+              // Emitir evento de jugador desconectado a los demás jugadores
+              io.to(codigoSala).emit('jugadorDesconectado', {
+                nickname: jugadorDesconectado.nickname,
+                jugadores: jugadoresActualizados
+              });
+            }
+          }
         }
+      } catch (err) {
+        console.error('❌ Error al manejar la desconexión:', err);
       }
     });
   });
