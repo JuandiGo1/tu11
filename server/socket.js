@@ -8,11 +8,12 @@ export default function socketHandler(io) {
     console.log('🔌 Nuevo cliente conectado:', socket.id);
 
     // Unirse a una sala
-    socket.on('unirseSala', async ({ codigoSala, nickname, avatar }) => {
+    socket.on('unirseSala', async ({ codigoSala, jugador}) => {
+     
       console.log(`🎮 ${nickname} quiere unirse a la sala ${codigoSala}`);
 
       try {
-        const { sala, error, status } = await agregarJugadorASala(codigoSala, { nickname, avatar });
+        const { sala, error, status } = await agregarJugadorASala(codigoSala, jugador);
 
         if (!sala) {
           socket.emit('errorSala', error || 'La sala no existe');

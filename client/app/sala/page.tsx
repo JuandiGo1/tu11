@@ -27,16 +27,21 @@ export default function SalaHome() {
   if (!jugador) return null
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-blue-50 px-4">
-      <div className="text-center mb-6">
-        <h2 className="text-3xl font-bold">¡Hola, {jugador.avatar} {jugador.nombre}!</h2>
-        <p className="text-gray-600 mt-2">¿Qué deseas hacer?</p>
+    <main className="flex flex-col items-center justify-center min-h-screen bg-[#3c096c] px-4">
+      <div className="text-center flex flex-col mb-6 justify-center items-center">
+        <img
+          src={jugador.avatar}
+          alt="Avatar del jugador"
+          className="w-32 h-32 rounded-full border-4 border-purple-500 mb-4"
+        />
+        <h2 className="text-white text-3xl font-bold">¡Hola, {jugador.nombre}!</h2>
+        <p className="text-gray-300 mt-2">¿Qué deseas hacer?</p>
       </div>
 
       <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-md space-y-4">
         <button
           onClick={crearSala}
-          className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition"
+          className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition"
         >
           Crear nueva sala
         </button>
@@ -51,7 +56,7 @@ export default function SalaHome() {
           />
           <button
             onClick={unirseSala}
-            className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700"
+            className="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition"
           >
             Unirse
           </button>

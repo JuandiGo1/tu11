@@ -18,7 +18,7 @@ export interface Sala {
 }
 
 export interface Jugador{
-    nick: string;
+    nickname: string;
     avatar: string;
 
 }
