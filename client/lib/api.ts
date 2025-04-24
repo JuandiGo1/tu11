@@ -1,7 +1,7 @@
 import { Sala } from '../lib/schemas'
 
 export async function crearSala( sala: Sala) {
-    const res = await fetch('http://localhost:3001/crear', {
+    const res = await fetch('http://localhost:3001/api/salas/crear', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

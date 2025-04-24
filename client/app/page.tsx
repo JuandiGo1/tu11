@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
-  const [nombre, setNombre] = useState('')
+  const [nickname, setNickname] = useState('')
   const [avatar, setAvatar] = useState('/avatars/klop.jpg') // Avatar por defecto
   const router = useRouter()
 
@@ -16,10 +16,10 @@ export default function HomePage() {
   ]
 
   const handleStart = () => {
-    if (!nombre.trim()) return alert('Ingresa tu nickname')
+    if (!nickname.trim()) return alert('Ingresa tu nickname')
 
     // Guardamos datos en localStorage
-    localStorage.setItem('jugador', JSON.stringify({ nombre, avatar }))
+    localStorage.setItem('jugador', JSON.stringify({ nickname, avatar }))
     router.push('/sala')
   }
 
@@ -55,8 +55,8 @@ export default function HomePage() {
           type="text"
           placeholder="MiNickName6805"
           className="w-full border border-gray-300 rounded-lg p-3 text-center"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
         />
 
         {/* Continue Button */}

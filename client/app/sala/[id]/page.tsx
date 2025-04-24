@@ -54,18 +54,45 @@ export default function SalaPage() {
   }
 
   return (
-    <main className="p-6 text-center">
-      <h1 className="text-3xl font-bold mb-4">Sala: {id}</h1>
+    <main className="flex flex-col items-center justify-center min-h-screen bg-[#3c096c] px-4">
+      <h1 className="text-white text-3xl font-bold mb-6">Sala: {id}</h1>
 
-      <h2 className="text-xl mb-4">{listo ? '✅ Juego listo para comenzar' : '⏳ Esperando al otro jugador...'}</h2>
+      <h2 className="text-xl text-white mb-4">
+        {listo ? '✅ Juego listo para comenzar' : '⏳ Esperando al otro jugador...'}
+      </h2>
 
-      <div className="flex justify-center gap-8">
-        {jugadores.map((j, idx) => (
-          <div key={idx} className="flex flex-col items-center">
-            <img src={j.avatar} alt={j.nickname} className="w-20 h-20 rounded-full border-4 border-blue-500" />
-            <p className="mt-2">{j.nickname}</p>
-          </div>
-        ))}
+      <div className="flex justify-center gap-16">
+        {/* Jugador 1 (Anfitrión) */}
+        <div className="flex flex-col items-center">
+          {jugadores[0] ? (
+            <>
+              <img
+                src={jugadores[0].avatar}
+                alt={jugadores[0].nickname}
+                className="w-32 h-32 rounded-full border-4 border-purple-500"
+              />
+              <p className="text-white mt-2 text-lg font-bold">{jugadores[0].nickname}</p>
+            </>
+          ) : (
+            <p className="text-gray-300">Esperando al anfitrión...</p>
+          )}
+        </div>
+
+        {/* Jugador 2 (Invitado) */}
+        <div className="flex flex-col items-center">
+          {jugadores[1] ? (
+            <>
+              <img
+                src={jugadores[1].avatar}
+                alt={jugadores[1].nickname}
+                className="w-32 h-32 rounded-full border-4 border-purple-500"
+              />
+              <p className="text-white mt-2 text-lg font-bold">{jugadores[1].nickname}</p>
+            </>
+          ) : (
+            <p className="text-gray-300">Esperando al jugador...</p>
+          )}
+        </div>
       </div>
     </main>
   )

@@ -8,13 +8,9 @@ export interface Regla {
 }
 
 export interface Sala {
-    codigo: string;
-    reglas : Regla[];
-    jugadores: Jugador[];
-    turnoActual: number;
-    estado: string;
-    creada: Date;
-    
+    nickname: string; // Nickname del anfitrión
+    avatar: string; // Avatar del anfitrión
+    reglas: Regla[]; // Reglas de la sala
 }
 
 export interface Jugador{

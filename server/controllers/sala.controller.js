@@ -45,16 +45,16 @@ export const unirseASala = async (req, res) => {
 
 // Obtener datos de sala
 export const obtenerSala = async (req, res) => {
+  const { codigo } = req.params;
   try {
     const sala = await Sala.findOne({ codigo });
 
     if (!sala) return { error: 'Sala no encontrada', status: 404 };
 
-    const salaLlena = sala.jugadores.length >= 2;
-    return { sala, salaLlena };
+    res.status(200).json(sala)
   } catch (err) {
     console.error('Error al obtener sala:', err);
-    return { error: 'Error al obtener la sala', status: 500 };
+    res.status(500).json({ error: 'Error al buscar la sala' });
   }
 };
 
