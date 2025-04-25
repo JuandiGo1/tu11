@@ -1,4 +1,4 @@
-import { Sala } from '../lib/schemas'
+import { Jugador, Sala } from '../lib/schemas'
 
 export async function crearSala(sala: Sala) {
   const res = await fetch('http://localhost:3001/api/salas/crear', {
@@ -28,6 +28,20 @@ export async function verificarSala(codigoSala: string): Promise<{ estaLlena: bo
   }
 
   return {estaLlena: false} 
+}
+
+export async function getAnfitrion(codigoSala: string): Promise<{ anfitrion: Jugador }> {
+  if (!codigoSala.trim()) throw new Error('Falta el código de la sala')
+
+  const res = await fetch(`http://localhost:3001/api/salas/${codigoSala}`)
+  if (!res.ok) throw new Error('Error al verificar la sala')
+
+  const data = await res.json()
+  
+  const anfitrion = {nickname: data.jugadores[0].nickname, avatar: data.jugadores[0].avatar}
+  if (!anfitrion) throw new Error('No se encontró el anfitrión')
+
+  return {anfitrion} 
 }
 
 export async function salirSala(codigoSala: string, nickname: string) {

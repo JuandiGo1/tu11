@@ -1,8 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useSocket } from '@/hooks/useSocket'
 import { io, Socket } from 'socket.io-client'
 import { Jugador } from '../../../lib/schemas'
+import { getAnfitrion } from '@/lib/api'
 
 let socket: Socket
 
@@ -10,12 +12,28 @@ let socket: Socket
 export default function SalaPage() {
   const router = useRouter()
   const { id } = useParams()
+  const socketRef = useSocket('http://localhost:3001')
   const [jugadores, setJugadores] = useState<Jugador[]>([])
   const [yo, setYo] = useState<Jugador | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [listo, setListo] = useState(false)
 
   useEffect(() => {
+    //obtener el anfitrión de la sala
+    const fetchAnfitrion = async () => {
+      try {
+        const { anfitrion } = await getAnfitrion(id as string)
+        setJugadores((prev) => [...prev, anfitrion])
+      } catch (error) {
+        console.error('Error al obtener el anfitrión:', error)
+      }
+    }
+  
+    fetchAnfitrion() 
+  }, [id])
+
+  useEffect(() => {
+    
     // Obtenemos datos del jugador desde localStorage
     const stored = localStorage.getItem('jugador')
     if (!stored) return router.push('/')
@@ -23,13 +41,14 @@ export default function SalaPage() {
     const jugador: Jugador = JSON.parse(stored)
     setYo(jugador)
 
-    socket = io('http://localhost:3001') // tu backend
+    const socket = socketRef.current
+    if (!socket) return
 
     // Conectarse a la sala con nombre y avatar
     socket.emit('unirseSala', { codigoSala: id, jugador })
 
     socket.on('jugadorUnido', ({ jugadores }) => {
-      setJugadores(jugadores)
+      setJugadores((prev) => [...prev, jugadores])
     })
 
     socket.on('juegoListo', () => {
@@ -41,9 +60,11 @@ export default function SalaPage() {
     })
 
     return () => {
-      socket.disconnect()
+      socket.off('jugadorUnido')
+      socket.off('juegoListo')
+      socket.off('errorSala')
     }
-  }, [id, router])
+  }, [id, router, socketRef])
 
   // if (error) {
   //   return (

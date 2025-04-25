@@ -39,6 +39,7 @@ export default function socketHandler(io) {
         socket.join(codigoSala);
         if(salaActualizada.jugadores.length === 2) {
           io.to(codigoSala).emit('juegoListo');
+          console.log(`Evento juegoListo emitido a la sala ${codigoSala}`)
         }
 
         // Agregar jugador a memoria
@@ -46,7 +47,7 @@ export default function socketHandler(io) {
           salasActivas.set(codigoSala, []);
         }
         const jugadoresConectados = salasActivas.get(codigoSala);
-        jugadoresConectados.push({ id: socket.id, nickname, avatar });
+        jugadoresConectados.push({ id: socket.id, nickname: jugador.nickname, avatar: jugador.avatar });
         salasActivas.set(codigoSala, jugadoresConectados);
 
         // Emitir actualización de jugadores
@@ -56,10 +57,7 @@ export default function socketHandler(io) {
           jugadores: jugadoresConectados
         });
 
-        // Si ya hay 2, avisar que el juego puede comenzar
-        if (sala.jugadores.length === 2) {
-          io.to(codigoSala).emit('juegoListo');
-        }
+        
 
       } catch (err) {
         console.error('❌ Error en unirseSala:', err);

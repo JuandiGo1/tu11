@@ -38,6 +38,10 @@ export default function SalaHome() {
 
       try {
           const sala = await verificarSala(codigoSala)
+          if (!sala) {
+            return alert('La sala no existe.')
+          }
+
           if (sala.estaLlena) {
               return alert('La sala está llena, no puedes unirte.')
           }
