@@ -30,7 +30,7 @@ export default function socketHandler(io) {
             jugadores: jugadoresConectados
           });
         } else {
-          console.log(`👤 ${jugador.nickname} ya está en la sala ${codigoSala}`);
+          console.log(`🙅‍♂️ ${jugador.nickname} ya está en la sala ${codigoSala}`);
         }
       } catch (err) {
         console.error('❌ Error al crear sala:', err);
@@ -51,7 +51,7 @@ export default function socketHandler(io) {
 
         const jugadorYaEnSala = sala.jugadores.some(j => j.nickname === jugador.nickname);
         if (jugadorYaEnSala) {
-          console.log(`👤X- ${jugador.nickname} ya está en la sala ${codigoSala} -X`);
+          console.log(`:🙅  ${jugador.nickname} ya está en la sala ${codigoSala} `);
           socket.emit('errorSala', 'Ya estás en la sala');
           return;
         }
@@ -61,9 +61,12 @@ export default function socketHandler(io) {
           return;
         }
 
+
         const { sala: salaActualizada } = await agregarJugadorASala(codigoSala, jugador);
 
         socket.join(codigoSala);
+        console.log(`😁  ${jugador.nickname} se une a la sala ${codigoSala} `);
+
 
         if (salaActualizada.jugadores.length === 2) {
           io.to(codigoSala).emit('juegoListo');

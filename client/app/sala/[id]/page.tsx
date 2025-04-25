@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSocket } from '@/hooks/useSocket'
 import { io, Socket } from 'socket.io-client'
@@ -17,54 +17,72 @@ export default function SalaPage() {
   const [yo, setYo] = useState<Jugador | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [listo, setListo] = useState(false)
+  const salaCreadaRef = useRef(false)
 
   useEffect(() => {
+    const handleJugadorUnido = ({ jugadores }: { jugadores: Jugador[] }) => {
+      console.log('Jugador unido:', jugadores)
+      setJugadores(jugadores)
+    }
+
+    const handleJuegoListo = () => {
+      setListo(true)
+    }
+
+    const handleErrorSala = (mensaje: string) => {
+      setError(mensaje)
+    }
     const fetchAnfitrion = async () => {
       try {
         const { anfitrion } = await getAnfitrion(id as string)
-        
-  
+
+
         // Obtenemos datos del jugador desde localStorage
         const stored = localStorage.getItem('jugador')
         if (!stored) return router.push('/')
-  
+
         const jugador: Jugador = JSON.parse(stored)
         setYo(jugador)
-  
+
         const socket = socketRef.current
         if (!socket) return
-  
+
+
+        // Emitir evento 'salaCreada' solo si no se ha creado antes
+        if (!salaCreadaRef.current) {
+          console.log('Sala creada:', id)
+          socket.emit('salaCreada', { codigoSala: id, jugador: anfitrion })
+          salaCreadaRef.current = true
+        }
+
+        // Emitir evento 'unirseSala' solo si no es el anfitrión
+        if (jugador.nickname !== anfitrion.nickname) {
+          console.log('Unirse a la sala, no es el anfitrion:', id)
+          socket.emit('unirseSala', { codigoSala: id, jugador })
+        }
+
+
+        // Configurar listeners del socket
         
-        socket.emit('salaCreada', { codigoSala: id, jugador: anfitrion })
-  
-        // Conectarse a la sala con nombre y avatar
-        socket.emit('unirseSala', { codigoSala: id, jugador })
-  
-        socket.on('jugadorUnido', ({ jugadores }) => {
-          console.log('Jugador unido:', jugadores)
-          setJugadores(jugadores)
-        })
-  
-        socket.on('juegoListo', () => {
-          setListo(true)
-        })
-  
-        socket.on('errorSala', (mensaje: string) => {
-          setError(mensaje)
-        })
+
+        socket.on('jugadorUnido', handleJugadorUnido)
+        socket.on('juegoListo', handleJuegoListo)
+        socket.on('errorSala', handleErrorSala)
+
+        // Limpieza de listeners
       } catch (error) {
         console.error('Error al obtener el anfitrión:', error)
       }
     }
-  
+
     fetchAnfitrion()
-  
+
     return () => {
       const socket = socketRef.current
       if (socket) {
-        socket.off('jugadorUnido')
-        socket.off('juegoListo')
-        socket.off('errorSala')
+        socket.off('jugadorUnido', handleJugadorUnido)
+        socket.off('juegoListo', handleJuegoListo)
+        socket.off('errorSala', handleErrorSala)
       }
     }
   }, [id, router, socketRef])
