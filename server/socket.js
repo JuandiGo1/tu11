@@ -7,22 +7,51 @@ export default function socketHandler(io) {
   io.on('connection', (socket) => {
     console.log('🔌 Nuevo cliente conectado:', socket.id);
 
+    socket.on('salaCreada', async ({ codigoSala, jugador }) => {
+      try {
+        console.log(`🎮 ${jugador.nickname} ha creado la sala ${codigoSala}`);
+        socket.join(codigoSala);
+
+        // Verificar si la sala ya existe en memoria
+        if (!salasActivas.has(codigoSala)) {
+          salasActivas.set(codigoSala, []);
+        }
+
+        const jugadoresConectados = salasActivas.get(codigoSala);
+
+        // Verificar si el jugador ya está en la sala
+        const jugadorYaEnSala = jugadoresConectados.some(j => j.nickname === jugador.nickname);
+        if (!jugadorYaEnSala) {
+          jugadoresConectados.push({ id: socket.id, nickname: jugador.nickname, avatar: jugador.avatar });
+          salasActivas.set(codigoSala, jugadoresConectados);
+
+          // Emitir actualización de jugadores
+          io.to(codigoSala).emit('jugadorUnido', {
+            jugadores: jugadoresConectados
+          });
+        } else {
+          console.log(`👤 ${jugador.nickname} ya está en la sala ${codigoSala}`);
+        }
+      } catch (err) {
+        console.error('❌ Error al crear sala:', err);
+      }
+    });
+
     // Unirse a una sala
     socket.on('unirseSala', async ({ codigoSala, jugador }) => {
-
       console.log(`🎮 ${jugador.nickname} quiere unirse a la sala ${codigoSala}`);
 
       try {
         const sala = await Sala.findOne({ codigo: codigoSala });
-        
 
         if (!sala) {
-          socket.emit('errorSala', error || 'La sala no existe');
+          socket.emit('errorSala', 'La sala no existe');
           return;
         }
 
         const jugadorYaEnSala = sala.jugadores.some(j => j.nickname === jugador.nickname);
         if (jugadorYaEnSala) {
+          console.log(`👤X- ${jugador.nickname} ya está en la sala ${codigoSala} -X`);
           socket.emit('errorSala', 'Ya estás en la sala');
           return;
         }
@@ -32,33 +61,26 @@ export default function socketHandler(io) {
           return;
         }
 
-        const { sala: salaActualizada, error, status } = await agregarJugadorASala(codigoSala, jugador);
+        const { sala: salaActualizada } = await agregarJugadorASala(codigoSala, jugador);
 
-
-        // Join room socket.io
         socket.join(codigoSala);
-        if(salaActualizada.jugadores.length === 2) {
+
+        if (salaActualizada.jugadores.length === 2) {
           io.to(codigoSala).emit('juegoListo');
-          console.log(`Evento juegoListo emitido a la sala ${codigoSala}`)
+          console.log(`Evento juegoListo emitido a la sala ${codigoSala}`);
         }
 
-        // Agregar jugador a memoria
         if (!salasActivas.has(codigoSala)) {
           salasActivas.set(codigoSala, []);
         }
+
         const jugadoresConectados = salasActivas.get(codigoSala);
         jugadoresConectados.push({ id: socket.id, nickname: jugador.nickname, avatar: jugador.avatar });
         salasActivas.set(codigoSala, jugadoresConectados);
 
-        // Emitir actualización de jugadores
         io.to(codigoSala).emit('jugadorUnido', {
-          nickname: jugador.nickname,
-          avatar: jugador.avatar,
           jugadores: jugadoresConectados
         });
-
-        
-
       } catch (err) {
         console.error('❌ Error en unirseSala:', err);
         socket.emit('errorSala', 'Error interno del servidor');

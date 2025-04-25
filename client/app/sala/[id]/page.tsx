@@ -19,53 +19,55 @@ export default function SalaPage() {
   const [listo, setListo] = useState(false)
 
   useEffect(() => {
-    //obtener el anfitrión de la sala
     const fetchAnfitrion = async () => {
       try {
         const { anfitrion } = await getAnfitrion(id as string)
-        setJugadores((prev) => [...prev, anfitrion])
+        
+  
+        // Obtenemos datos del jugador desde localStorage
+        const stored = localStorage.getItem('jugador')
+        if (!stored) return router.push('/')
+  
+        const jugador: Jugador = JSON.parse(stored)
+        setYo(jugador)
+  
+        const socket = socketRef.current
+        if (!socket) return
+  
+        
+        socket.emit('salaCreada', { codigoSala: id, jugador: anfitrion })
+  
+        // Conectarse a la sala con nombre y avatar
+        socket.emit('unirseSala', { codigoSala: id, jugador })
+  
+        socket.on('jugadorUnido', ({ jugadores }) => {
+          console.log('Jugador unido:', jugadores)
+          setJugadores(jugadores)
+        })
+  
+        socket.on('juegoListo', () => {
+          setListo(true)
+        })
+  
+        socket.on('errorSala', (mensaje: string) => {
+          setError(mensaje)
+        })
       } catch (error) {
         console.error('Error al obtener el anfitrión:', error)
       }
     }
   
-    fetchAnfitrion() 
-  }, [id])
-
-  useEffect(() => {
-    
-    // Obtenemos datos del jugador desde localStorage
-    const stored = localStorage.getItem('jugador')
-    if (!stored) return router.push('/')
-
-    const jugador: Jugador = JSON.parse(stored)
-    setYo(jugador)
-
-    const socket = socketRef.current
-    if (!socket) return
-
-    // Conectarse a la sala con nombre y avatar
-    socket.emit('unirseSala', { codigoSala: id, jugador })
-
-    socket.on('jugadorUnido', ({ jugadores }) => {
-      setJugadores((prev) => [...prev, jugadores])
-    })
-
-    socket.on('juegoListo', () => {
-      setListo(true)
-    })
-
-    socket.on('errorSala', (mensaje: string) => {
-      setError(mensaje)
-    })
-
+    fetchAnfitrion()
+  
     return () => {
-      socket.off('jugadorUnido')
-      socket.off('juegoListo')
-      socket.off('errorSala')
+      const socket = socketRef.current
+      if (socket) {
+        socket.off('jugadorUnido')
+        socket.off('juegoListo')
+        socket.off('errorSala')
+      }
     }
   }, [id, router, socketRef])
-
   // if (error) {
   //   return (
   //     <main className="p-6 text-center">
