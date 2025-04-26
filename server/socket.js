@@ -62,7 +62,7 @@ export default function socketHandler(io) {
         }
 
 
-        const { sala: salaActualizada } = await agregarJugadorASala(codigoSala, jugador);
+        const { salaActualizada, error, status } = await agregarJugadorASala(codigoSala, jugador);
 
         socket.join(codigoSala);
         console.log(`😁  ${jugador.nickname} se une a la sala ${codigoSala} `);
