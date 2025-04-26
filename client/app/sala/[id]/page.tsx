@@ -5,6 +5,7 @@ import { useSocket } from '@/hooks/useSocket'
 import { io, Socket } from 'socket.io-client'
 import { Jugador } from '../../../lib/schemas'
 import { getAnfitrion } from '@/lib/api'
+import Cancha from '@/components/Cancha'
 
 let socket: Socket
 
@@ -32,6 +33,7 @@ export default function SalaPage() {
     const handleErrorSala = (mensaje: string) => {
       setError(mensaje)
     }
+
     const fetchAnfitrion = async () => {
       try {
         const { anfitrion } = await getAnfitrion(id as string)
@@ -69,7 +71,6 @@ export default function SalaPage() {
         socket.on('juegoListo', handleJuegoListo)
         socket.on('errorSala', handleErrorSala)
 
-        // Limpieza de listeners
       } catch (error) {
         console.error('Error al obtener el anfitrión:', error)
       }
@@ -107,6 +108,7 @@ export default function SalaPage() {
         <div className="flex flex-col items-center">
           {jugadores[0] ? (
             <>
+              <Cancha esMiCancha={yo?.nickname === jugadores[0].nickname} jugador={jugadores[0]} />
               <img
                 src={jugadores[0].avatar}
                 alt={jugadores[0].nickname}
@@ -123,6 +125,7 @@ export default function SalaPage() {
         <div className="flex flex-col items-center">
           {jugadores[1] ? (
             <>
+              <Cancha esMiCancha={yo?.nickname === jugadores[1].nickname} jugador={jugadores[1]} />
               <img
                 src={jugadores[1].avatar}
                 alt={jugadores[1].nickname}
